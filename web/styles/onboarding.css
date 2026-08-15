@@ -1,0 +1,85 @@
+/* ═══ Kairos · onboarding.css — 三屏引导 ═══ */
+
+/* 语言按钮：屏1 放时钟下方的空白处；屏2/3 顶部是标题，改到右上角 */
+.oblang{position:absolute;top:calc(env(safe-area-inset-top) + 150px);right:30px;
+  z-index:45;width:34px;height:26px;border-radius:8px;border:1px solid var(--line);
+  background:transparent;color:var(--ink3);font-family:inherit;font-size:10.5px;
+  letter-spacing:.04em;cursor:pointer;display:grid;place-items:center;
+  transition:opacity .4s}
+body.ob-step2 .oblang,body.ob-step3 .oblang{
+  top:calc(env(safe-area-inset-top) + 26px)}
+.oblang:active{background:var(--accent-soft)}
+
+.ob{position:absolute;inset:0;z-index:40;background:var(--paper);
+  display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top) + 30px) 30px
+          calc(env(safe-area-inset-bottom) + 30px);
+  opacity:1;transition:opacity .5s ease}
+.ob.gone{opacity:0;pointer-events:none;will-change:opacity}
+.ob.hidden{display:none;will-change:auto}
+
+/* 屏 1 */
+#ob1{cursor:pointer}
+#ob1 .top{flex:none}
+#ob1 .wd{font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--ink2);margin-bottom:4px}
+#ob1 .big{font-size:62px;font-weight:600;letter-spacing:-.045em;line-height:.92;
+  font-variant-numeric:tabular-nums;color:var(--ink)}
+#ob1 .mo{font-size:27px;font-weight:500;color:var(--ink);margin-top:4px;letter-spacing:.01em}
+#ob1 .yr{font-size:27px;font-weight:400;color:var(--ink3)}
+#ob1 .clock{position:absolute;right:30px;top:calc(env(safe-area-inset-top) + 44px);
+  text-align:right;padding-left:20px;border-left:1px solid var(--line)}
+#ob1 .clock .t{font-size:29px;font-weight:500;color:var(--ink);
+  font-variant-numeric:tabular-nums;line-height:1}
+#ob1 .clock .ap{font-size:12px;color:var(--ink2);margin-top:3px}
+#ob1 .clock .tz{font-size:9.5px;letter-spacing:.14em;color:var(--ink3);margin-top:12px}
+#ob1 .mid{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:56px}
+#ob1 .brand{text-align:center}
+#ob1 .brand .name{font-family:"Cinzel",Georgia,serif;font-size:34px;font-weight:400;
+  letter-spacing:.19em;color:var(--ink);margin-left:.19em}
+#ob1 .brand .tag{font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink3);margin-top:11px}
+#ob1 .q{text-align:center;max-width:280px}
+#ob1 .q .en{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;
+  font-size:20px;color:var(--ink2);line-height:1.4}
+#ob1 .q .or{font-family:"Cormorant Garamond",Georgia,serif;font-style:italic;
+  font-size:14px;color:var(--ink3);margin-top:7px}
+#ob1 .q .by{font-size:8px;letter-spacing:.16em;color:#C4B2A0;margin-top:11px}
+#ob1 .hint{text-align:center;font-size:11px;color:var(--ink3);letter-spacing:.1em;
+  flex:none;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{0%,100%{opacity:.45}50%{opacity:.85}}
+
+/* 屏 2 / 3 */
+.ob h1{font-size:25px;font-weight:600;letter-spacing:-.015em;line-height:1.35;
+  margin-bottom:11px}
+.ob .lead{font-size:13.5px;color:var(--ink2);line-height:1.7;margin-bottom:26px}
+.ob .spacer{flex:1}
+.ob .fine{font-size:10.5px;color:var(--ink3);line-height:1.6;margin-top:13px;
+  text-align:center}
+
+.mailbox{border:1px solid var(--line);border-radius:16px;padding:18px;
+  background:var(--card);margin-bottom:18px}
+.mailbox .row{display:flex;align-items:center;gap:13px}
+.mailbox .ic{width:38px;height:38px;border-radius:11px;background:var(--accent-soft);
+  color:var(--accent-ink);display:grid;place-items:center;font-size:16px;flex:none}
+.mailbox .nm{font-size:14.5px;font-weight:500}
+.mailbox .sb{font-size:11.5px;color:var(--ink3);margin-top:2px}
+.mailbox.done .ic{background:#DFF1EE;color:#0A5B52}
+.spin{width:15px;height:15px;border:2px solid var(--line);border-top-color:var(--accent);
+  border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.pts{display:flex;flex-direction:column;gap:15px}
+.pt{display:flex;gap:12px;align-items:flex-start}
+.pt .d{width:5px;height:5px;border-radius:50%;background:var(--accent);
+  margin-top:7px;flex:none}
+.pt .tx{font-size:13px;line-height:1.62;color:var(--ink2)}
+.pt .tx b{color:var(--ink);font-weight:500}
+.agree{display:flex;gap:11px;align-items:flex-start;padding:15px 0 6px;cursor:pointer;
+  border-top:1px solid var(--line);margin-top:20px}
+.agree .box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);
+  flex:none;display:grid;place-items:center;margin-top:1px;transition:.18s;
+  font-size:12px;color:transparent}
+.agree.on .box{background:var(--accent);border-color:var(--accent);color:#fff}
+.agree .lb{font-size:12.5px;color:var(--ink2);line-height:1.6}

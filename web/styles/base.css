@@ -1,0 +1,92 @@
+/* ═══════════════════════════════════════════════════════════
+   Kairos · base.css — 设计令牌、主题、通用组件
+   ───────────────────────────────────────────────────────────
+   约定（改动前必读）：
+   1. 禁止在 CSS 里写 will-change。一律由 JS 在动画开始时挂载、
+      结束时清除。常驻 will-change 会永久占用合成层，拖垮移动端。
+   2. 静态装饰层（纹理、阴影伪元素）加 contain:paint 隔离绘制。
+      不要用 contain:strict —— 它含 size，会让 inset:0 的伪元素塌成 0。
+   3. 三套主题由 body 上的 .all / .day / .bill 切换，
+      颜色一律走 CSS 变量，组件内不写死色值。
+   ═══════════════════════════════════════════════════════════ */
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --paper:#FAF8F5; --card:#FFFFFF;
+  --ink:#221A13; --ink2:#7C6A59; --ink3:#A89684;
+  --line:#E8E3DA;
+  --accent:#5A5248; --accent-soft:#ECE7DF; --accent-ink:#3B352D;
+  --hero-bg:#2B2721; --hero-ink:#F4EFE7; --hero-sub:#A79C8C;
+  --grab:#CFC7BA;
+  --c-appt:#E8622A; --c-due:#B98A2E; --c-deliv:#4F9160; --c-bill:#0E8A7D;
+  --c-other:#6E7C93;
+  --mint:#0E8A7D;
+  --cell-h:47px; --sheet-h:78vh; --sheet-peek:52px;
+  --grid-end:340px;
+}
+body.day{
+  --paper:#FCF8F2; --line:#EDE3D5; --grab:#D9CCBA;
+  --accent:#E8622A; --accent-soft:#FDEBE1; --accent-ink:#9C3A11;
+  --hero-bg:#F3DFCB; --hero-ink:#241A12; --hero-sub:#8A7460;
+}
+body.bill{
+  --paper:#F7F9FA; --line:#E2E8EB; --grab:#C3D0D5;
+  --accent:#0E8A7D; --accent-soft:#DDEFEC; --accent-ink:#0A5B52;
+  --hero-bg:#16242C; --hero-ink:#E8F1F4; --hero-sub:#8FA9B4;
+}
+
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:"Archivo",-apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif;
+  background:#E8E2D8;color:var(--ink);-webkit-font-smoothing:antialiased;
+  display:flex;align-items:center;justify-content:center;
+}
+.phone{
+  position:relative;width:100%;max-width:412px;height:100%;max-height:892px;
+  background:var(--paper);overflow:hidden;display:flex;flex-direction:column;
+  transition:background .45s ease;
+}
+@media(min-width:460px) and (min-height:700px){
+  .phone{border-radius:38px;box-shadow:0 30px 70px rgba(0,0,0,.3);height:892px}
+}
+@media(max-width:459px){ .phone{box-shadow:none} }
+
+.btn{width:100%;padding:15px;border-radius:14px;border:0;font-family:inherit;
+  font-size:15px;font-weight:500;cursor:pointer;background:var(--accent);color:#fff;
+  transition:opacity .2s}
+.btn:disabled{opacity:.32}
+.btn.ghost{background:transparent;color:var(--ink2);border:1px solid var(--line);
+  margin-top:9px;font-weight:400;font-size:13.5px}
+
+.fld{margin-bottom:11px}
+.fld label{display:block;font-size:11px;color:var(--ink3);margin-bottom:5px;
+  letter-spacing:.06em}
+.fld input,.fld select{width:100%;padding:11px 12px;border-radius:11px;
+  border:1px solid var(--line);background:var(--paper);font-family:inherit;
+  font-size:14px;color:var(--ink)}
+.fld input:focus,.fld select:focus{outline:2px solid var(--accent);outline-offset:-1px}
+
+.mask{position:absolute;inset:0;background:rgba(30,20,10,.36);opacity:0;
+  pointer-events:none;transition:opacity .25s;z-index:10}
+.mask.on{opacity:1;pointer-events:auto}
+.modal{position:absolute;left:0;right:0;bottom:0;background:var(--card);
+  border-radius:22px 22px 0 0;
+  padding:16px 20px calc(env(safe-area-inset-bottom) + 20px);
+  transform:translateY(100%);transition:transform .34s cubic-bezier(.32,.72,0,1);
+  z-index:11;max-height:86%;overflow-y:auto}
+.modal.on{transform:none}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:14px}
+.mrow{display:flex;gap:9px;margin-top:15px}
+.mrow button{flex:1;padding:13px;border-radius:12px;font-family:inherit;font-size:14px;
+  cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink2);
+  font-weight:500}
+.mrow button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.toast{position:absolute;left:50%;bottom:26px;transform:translateX(-50%) translateY(70px);
+  background:var(--ink);color:var(--paper);padding:11px 19px;border-radius:30px;
+  font-size:13px;z-index:20;transition:transform .3s cubic-bezier(.2,1.2,.4,1);
+  white-space:nowrap;max-width:88%;overflow:hidden;text-overflow:ellipsis}
+.toast.on{transform:translateX(-50%)}
+
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}

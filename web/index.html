@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kairos">
+<meta name="theme-color" content="#FAF8F5">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Kairos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/calendar.css">
+<link rel="stylesheet" href="styles/onboarding.css">
+</head>
+<body class="all">
+
+<div class="phone" id="phone">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="heroTop">
+      <div class="left">
+        <span class="wd" id="hWd">FRIDAY</span>
+        <span class="demo" data-t="demo">Demo data</span>
+      </div>
+      <div class="heroBtns">
+        <button class="iconb" id="langBtn" title="Language">EN</button>
+        <button class="iconb" id="subBtn" title="Subscribe">↗</button>
+      </div>
+    </div>
+    <div class="heroRow">
+      <div class="bigdate" id="hDate">14<span class="mo">AUGUST 2026</span></div>
+      <div class="heroMeta" id="hMeta"></div>
+    </div>
+  </div>
+
+  <!-- 连接状态 -->
+  <div class="connbar" id="connbar"><span></span><button></button></div>
+
+  <!-- 分段控件 -->
+  <div class="tabs">
+    <div class="seg">
+      <button data-tab="all" class="on" data-t="all">All</button>
+      <button data-tab="day" data-t="agenda">Agenda</button>
+      <button data-tab="bill" data-t="bills">Bills</button>
+    </div>
+    <button class="addb" id="addBtn">＋</button>
+  </div>
+
+  <!-- 月导航 -->
+  <div class="mnav">
+    <div class="lbl" id="mLbl">August <span>2026</span></div>
+    <div class="btns">
+      <button data-nav="-1" aria-label="Previous month">‹</button>
+      <button data-nav="0" data-t="todayBtn" style="width:auto;padding:0 9px;font-size:12px">Today</button>
+      <button data-nav="1" aria-label="Next month">›</button>
+    </div>
+  </div>
+  <div class="wdrow" id="wdrow"></div>
+  <div class="gwrap"><div class="grid" id="grid"></div></div>
+
+  <!-- 品牌区 -->
+  <div class="brandpad" id="brandpad">
+    <div class="mark">KAIROS</div>
+    <div class="quote" id="quote"></div>
+  </div>
+
+  <!-- 抽屉 -->
+  <div class="sheet" id="sheet">
+    <div class="grab" id="grab"><i></i></div>
+    <div class="peekhint" data-t="pullUp">Pull up</div>
+    <div class="shd"><h2 id="sTitle">Today</h2><div class="cnt" id="sCnt"></div></div>
+    <div class="slist" id="sList"></div>
+  </div>
+
+  <!-- 遮罩与弹窗 -->
+  <div class="mask" id="mask"></div>
+
+  <div class="modal" id="addModal">
+    <h3 data-t="addTitle">Add an item</h3>
+    <div class="fld"><label data-t="fDate">Date</label><input type="date" id="fDate"></div>
+    <div class="fld"><label data-t="fTime">Time</label><input type="time" id="fTime"></div>
+    <div class="fld"><label data-t="fContent">What</label><input id="fTitle" data-tp="fContentPh"></div>
+    <div class="fld"><label data-t="fWhich">Which calendar</label>
+      <select id="fKind">
+        <option value="appointment" data-t="optAppt">Agenda · Appointment</option>
+        <option value="deadline" data-t="optDue">Agenda · Deadline</option>
+        <option value="delivery" data-t="optDeliv">Agenda · Delivery</option>
+        <option value="other" data-t="optOther">Agenda · Other</option>
+        <option value="billing" data-t="optBill">Bills · Charge</option>
+      </select></div>
+    <div class="mrow"><button id="fCancel" data-t="cancel">Cancel</button>
+      <button class="pri" id="fSave" data-t="save">Add</button></div>
+  </div>
+
+  <div class="modal" id="subModal">
+    <h3 data-t="subTitle">Subscribe</h3>
+    <div class="fld"><label data-t="subUrl">Calendar link</label>
+      <input id="sUrl" placeholder="webcal://…/timetable.ics"></div>
+    <div class="fld"><label data-t="subName">Name</label>
+      <input id="sName" data-tp="subNamePh"></div>
+    <div class="fld"><label data-t="subWhich">Merge into</label>
+      <select id="sKind">
+        <option value="appointment" data-t="agenda">Agenda</option>
+        <option value="billing" data-t="bills">Bills</option>
+      </select></div>
+    <div class="mrow"><button id="sCancel" data-t="cancel">Cancel</button>
+      <button class="pri" id="sAdd" data-t="subAdd">Subscribe</button></div>
+    <div id="subList"></div>
+    <div class="subnote" id="subNote"></div>
+    <label style="display:block;margin-top:14px;font-size:11px;color:var(--ink3);
+      border:1px dashed var(--line);padding:8px;border-radius:9px;text-align:center;cursor:pointer">
+      calendar_events.json<input type="file" id="fileIn" accept=".json" hidden></label>
+  </div>
+
+  <!-- 引导 -->
+  <div class="ob" id="ob1">
+    <div class="top">
+      <div class="wd" id="obWd">FRIDAY</div>
+      <div class="big" id="obDate">14.08</div>
+      <div class="mo" id="obMo">AUGUST <span class="yr">2026</span></div>
+    </div>
+    <div class="clock">
+      <div class="t" id="obTime">3:07</div>
+      <div class="ap" id="obAp">PM</div>
+      <div class="tz" id="obTz">LOCAL</div>
+    </div>
+    <div class="mid">
+      <div class="brand">
+        <div class="name">KAIROS</div>
+        <div class="tag" id="obTag">YOUR PRIVATE AI CALENDAR AGENT</div>
+      </div>
+      <div class="q">
+        <div class="en" id="obQe"></div>
+        <div class="or" id="obQo"></div>
+        <div class="by" id="obQb"></div>
+      </div>
+    </div>
+    <div class="hint" id="obHint">TAP TO CONTINUE</div>
+  </div>
+
+  <div class="ob hidden" id="ob2">
+    <h1 id="ob2h">Connect your inbox</h1>
+    <div class="lead" id="ob2l"></div>
+    <div class="mailbox" id="mbox">
+      <div class="row">
+        <div class="ic" id="mboxIc">✉</div>
+        <div style="flex:1">
+          <div class="nm">Gmail</div>
+          <div class="sb" id="mboxSb"></div>
+        </div>
+        <div id="mboxRt"></div>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="obConnect">Connect Gmail</button>
+    <div class="fine" id="obFine"></div>
+  </div>
+
+  <div class="ob hidden" id="ob3">
+    <h1 id="ob3h">Before you start</h1>
+    <div class="lead" id="ob3l"></div>
+    <div class="pts" id="obPts"></div>
+    <div class="spacer"></div>
+    <div class="agree" id="obAgree">
+      <div class="box">✓</div>
+      <div class="lb" id="obAgreeLb"></div>
+    </div>
+    <button class="btn" id="obEnter" disabled>Enter Kairos</button>
+  </div>
+
+  <button class="oblang" id="obLang">EN</button>
+  <div class="toast" id="toast"></div>
+
+</div>
+
+<!-- 顺序即依赖：后面的可以用前面的，反之不行 -->
+<script src="scripts/i18n.js"></script>       <!-- LANG / L() / MO_EN -->
+<script src="scripts/store.js"></script>      <!-- Store：数据层唯一出入口 -->
+<script src="scripts/app.js"></script>        <!-- QUOTES / App（内部引用延迟求值） -->
+<script src="scripts/calendar.js"></script>   <!-- Cal：需要 L() 与 QUOTES -->
+<script src="scripts/onboarding.js"></script> <!-- Onboard：需要 Cal 与 App -->
+</body>
+</html>

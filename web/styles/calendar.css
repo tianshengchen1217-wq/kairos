@@ -1,0 +1,160 @@
+/* ═══ Kairos · calendar.css — hero / 分段 / 网格 / 抽屉 / 品牌区 ═══ */
+
+/* ── Hero ── */
+.hero{padding:calc(env(safe-area-inset-top) + 16px) 20px 14px;
+  background:var(--hero-bg);color:var(--hero-ink);position:relative;overflow:hidden;
+  transition:background .45s ease,color .45s ease;flex:none}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  contain:paint;
+  background:repeating-linear-gradient(97deg,rgba(120,80,40,.05) 0 1px,transparent 1px 7px)}
+body.bill .hero::after{opacity:.25;
+  background:repeating-linear-gradient(97deg,rgba(255,255,255,.05) 0 1px,transparent 1px 9px)}
+
+.heroTop{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;position:relative;z-index:2;gap:8px}
+.heroTop .left{display:flex;align-items:center;gap:8px;min-width:0}
+.hero .wd{font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--hero-sub);line-height:1;white-space:nowrap}
+.demo{font-size:8px;letter-spacing:.1em;color:var(--hero-sub);
+  border:1px solid currentColor;padding:2px 6px;border-radius:20px;opacity:.5;
+  pointer-events:none;flex:none;white-space:nowrap}
+.heroBtns{display:flex;gap:7px;flex:none}
+.iconb{width:29px;height:29px;border-radius:9px;border:1px solid currentColor;
+  background:transparent;color:var(--hero-sub);font-size:11px;cursor:pointer;
+  display:grid;place-items:center;opacity:.7;line-height:1;font-family:inherit;
+  letter-spacing:.02em}
+.iconb:active{opacity:1}
+
+.heroRow{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;
+  position:relative;z-index:2}
+.bigdate{font-size:50px;font-weight:600;letter-spacing:-.045em;line-height:.9;
+  font-variant-numeric:tabular-nums}
+.bigdate .mo{display:block;font-size:22px;font-weight:500;letter-spacing:.03em;
+  margin-top:3px;color:var(--hero-sub)}
+.heroMeta{text-align:right;font-size:10.5px;color:var(--hero-sub);line-height:1.55;
+  padding-bottom:6px;white-space:nowrap}
+.heroMeta b{display:block;font-size:20px;color:var(--hero-ink);font-weight:600;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin:1px 0}
+.heroMeta.mono b{font-family:"IBM Plex Mono",monospace;font-size:15px}
+
+/* 连接状态条 */
+.connbar{display:none;align-items:center;gap:9px;padding:9px 20px;
+  background:#FCEEE4;color:#8A4A16;font-size:12px;flex:none;position:relative;z-index:3}
+.connbar.on{display:flex}
+.connbar button{margin-left:auto;border:0;background:#8A4A16;color:#fff;
+  padding:5px 11px;border-radius:8px;font-size:11.5px;font-family:inherit;cursor:pointer}
+
+/* ── 分段控件 ── */
+.tabs{display:flex;align-items:center;gap:8px;padding:13px 16px 9px;flex:none}
+.seg{display:flex;background:rgba(0,0,0,.05);border-radius:11px;padding:3px;flex:1}
+body.bill .seg{background:rgba(14,138,125,.09)}
+.seg button{flex:1;border:0;background:transparent;font-family:inherit;font-size:12.5px;
+  color:var(--ink2);padding:7px 0;border-radius:9px;cursor:pointer;transition:.2s;
+  font-weight:500}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.addb{width:36px;height:36px;border-radius:11px;border:0;background:var(--accent);
+  color:#fff;font-size:19px;cursor:pointer;flex:none;display:grid;place-items:center;
+  transition:background .3s ease;line-height:1}
+
+/* ── 月导航 + 网格 ── */
+.mnav{display:flex;align-items:center;justify-content:space-between;padding:2px 20px 8px;
+  flex:none}
+.mnav .lbl{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.mnav .lbl span{color:var(--ink3);font-weight:400;margin-left:5px}
+.mnav .btns{display:flex;gap:2px;align-items:center}
+.mnav button{width:30px;height:30px;border:0;background:transparent;color:var(--ink2);
+  font-size:16px;border-radius:8px;cursor:pointer;font-family:inherit}
+.mnav button:active{background:rgba(0,0,0,.05)}
+
+.wdrow{display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px 4px;flex:none}
+.wdrow span{text-align:center;font-size:10px;letter-spacing:.08em;color:var(--ink3)}
+.gwrap{overflow:hidden;position:relative;flex:none}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 12px;touch-action:pan-y}
+.cell{height:var(--cell-h);display:flex;flex-direction:column;align-items:center;
+  padding-top:4px;cursor:pointer;position:relative;border-radius:11px}
+.cell .n{font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink);
+  width:27px;height:27px;display:grid;place-items:center;border-radius:50%;
+  transition:.18s;font-weight:500}
+.cell.out .n{color:var(--ink3);opacity:.5}
+.cell.sel .n{background:var(--ink);color:var(--paper)}
+.cell.today .n{color:var(--accent);font-weight:700}
+.cell.today.sel .n{background:var(--accent);color:#fff}
+.dots{display:flex;gap:3px;margin-top:3px;height:5px}
+.dot{width:4.5px;height:4.5px;border-radius:50%;background:var(--c-appt)}
+.dot.dl{background:var(--c-due)} .dot.dv{background:var(--c-deliv)}
+.dot.bl{background:var(--c-bill)} .dot.ot{background:var(--c-other)}
+.dot.more{width:8px;border-radius:3px;opacity:.45;background:var(--ink2)}
+
+/* ── 品牌区：占满网格底到屏幕底之间，内部居中 ── */
+.brandpad{position:absolute;left:0;right:0;top:var(--grid-end);bottom:var(--sheet-peek);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;padding:0 34px;text-align:center;opacity:.7;pointer-events:none;z-index:1}
+.brandpad .mark{font-family:"Cinzel",Georgia,serif;font-size:23px;font-weight:400;
+  color:var(--ink2);letter-spacing:.17em;margin-left:.17em}
+.brandpad .quote{font-size:11px;line-height:1.75;color:var(--ink3);max-width:280px;
+  transition:opacity .3s ease}
+.brandpad .quote i{font-family:"Cormorant Garamond",Georgia,serif;font-size:14px}
+.brandpad .quote b{display:block;margin-top:3px;font-weight:400;opacity:.72;
+  font-size:9.5px;letter-spacing:.08em}
+.brandpad.tight .quote{opacity:0}
+
+/* ── 抽屉：三档，由 JS 弹簧驱动（此处不写 transition） ── */
+.sheet{position:absolute;left:0;right:0;bottom:0;height:var(--sheet-h);
+  background:var(--card);border-radius:22px 22px 0 0;
+  display:flex;flex-direction:column;touch-action:none;z-index:5;contain:layout paint}
+.sheet::before{content:"";position:absolute;left:0;right:0;top:-24px;height:24px;
+  contain:paint;pointer-events:none;border-radius:22px 22px 0 0;
+  background:linear-gradient(to top,rgba(60,40,20,.10),transparent)}
+.sheet.peeking .shd,.sheet.peeking .slist{opacity:0;pointer-events:none}
+.sheet .shd,.sheet .slist{transition:opacity .18s ease}
+.sheet.moving .grp{position:static;top:auto}
+.sheet.moving .slist{pointer-events:none}
+.peekhint{position:absolute;left:0;right:0;top:22px;text-align:center;
+  font-size:11px;color:var(--ink3);opacity:0;transition:opacity .2s;pointer-events:none}
+.sheet.peeking .peekhint{opacity:1}
+
+.grab{padding:9px 0 5px;display:grid;place-items:center;cursor:grab;flex:none}
+.grab i{width:34px;height:4px;border-radius:3px;background:var(--grab);display:block}
+.shd{padding:1px 20px 10px;display:flex;align-items:baseline;justify-content:space-between;
+  gap:10px;flex:none}
+.shd h2{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.shd .cnt{font-size:11.5px;color:var(--ink3)}
+.shd .cnt b{font-family:"IBM Plex Mono",monospace;color:var(--mint);font-size:13px;
+  font-weight:500}
+.slist{flex:1;overflow-y:auto;padding:0 20px calc(env(safe-area-inset-bottom) + 22px);
+  -webkit-overflow-scrolling:touch}
+
+.grp{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);
+  padding:14px 0 6px;position:sticky;top:0;background:var(--card);z-index:1}
+.grp.tdy{color:var(--accent)}
+.ev{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line);
+  align-items:flex-start}
+.ev:first-of-type{border-top:0}
+.ev .bar{width:3px;border-radius:3px;background:var(--c-appt);align-self:stretch;
+  flex:none;min-height:20px}
+.ev .bar.dl{background:var(--c-due)} .ev .bar.dv{background:var(--c-deliv)}
+.ev .bar.bl{background:var(--c-bill)} .ev .bar.ot{background:var(--c-other)}
+.ev .tm{font-size:11.5px;color:var(--ink3);min-width:38px;padding-top:2px;
+  font-variant-numeric:tabular-nums}
+.ev .bd{flex:1;min-width:0}
+.ev .ti{font-size:14px;line-height:1.4}
+.ev .rt{flex:none;text-align:right;padding-top:1px}
+.ev .amt{font-family:"IBM Plex Mono",monospace;font-size:13.5px;color:var(--mint);
+  font-variant-numeric:tabular-nums;font-weight:500}
+.ev .tag{font-size:9.5px;letter-spacing:.08em;padding:3px 8px;border-radius:20px;
+  background:var(--accent-soft);color:var(--accent-ink);white-space:nowrap}
+.ev .tag.dl{background:#F5EBD4;color:#7A5B12}
+.ev .tag.dv{background:#E1EFE4;color:#2F5C3A}
+.ev .tag.ot{background:#E7EAF0;color:#48546B}
+.ev.past{opacity:.4}
+.mt{padding:34px 4px;text-align:center;color:var(--ink3);font-size:13px;line-height:1.8}
+.mt b{color:var(--accent);font-weight:500}
+
+/* 订阅列表 */
+.subrow{display:flex;gap:8px;align-items:center;padding:10px 0;
+  border-top:1px solid var(--line);font-size:12.5px}
+.subrow .nm{flex:1}
+.subrow .st{font-size:10.5px;color:var(--ink3);display:block;margin-top:2px}
+.subrow button{border:0;background:transparent;color:var(--accent);font-size:12px;
+  cursor:pointer;font-family:inherit;padding:4px 6px}
+.subnote{font-size:11px;color:var(--ink3);line-height:1.65;margin-top:10px}
