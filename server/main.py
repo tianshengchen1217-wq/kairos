@@ -44,6 +44,26 @@ def scheduled_sync():
         except Exception as e:
             print(f"[scheduler] user={uid} sync failed: {e}")
 
+def scheduled_backup():
+    import shutil, sqlite3, time
+    from pathlib import Path
+    src = db.DB_PATH
+    bdir = Path(src).parent / "backups"
+    bdir.mkdir(exist_ok=True)
+    dst = bdir / f"kairos-{time.strftime('%Y%m%d')}.db"
+    with sqlite3.connect(src) as s, sqlite3.connect(dst) as d:
+        s.backup(d)                       # 官方热备 API,写入中也安全
+    # 只留最近 7 份
+    for old in sorted(bdir.glob("kairos-*.db"))[:-7]:
+        old.unlink()
+    print(f"[backup] {dst.name} done")
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(scheduled_sync, "interval", hours=1,
+                  next_run_time=None)
+scheduler.add_job(scheduled_backup, "cron", hour=17, minute=0)
+scheduler.start()
+
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(scheduled_sync, "interval", hours=1,
