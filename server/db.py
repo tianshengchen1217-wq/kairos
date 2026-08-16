@@ -27,8 +27,7 @@ CREATE TABLE IF NOT EXISTS events (
     updated_at    TEXT DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_events_user_date ON events(user_id, datetime);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_events_dedup ON events(user_id, dedup_key)
-    WHERE dedup_key IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_events_dedup ON events(user_id, dedup_key);
 
 CREATE TABLE IF NOT EXISTS sync_state (
     user_id            INTEGER PRIMARY KEY,
@@ -36,6 +35,20 @@ CREATE TABLE IF NOT EXISTS sync_state (
     last_run_at        TEXT,
     last_status        TEXT
 );
+
+CREATE TABLE IF NOT EXISTS extraction_log (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       INTEGER NOT NULL,
+    email_id      TEXT NOT NULL,
+    run_at        TEXT DEFAULT (datetime('now')),
+    gate          TEXT,          -- rule_filter | haiku | time_probe | sonnet
+    verdict       TEXT,          -- positive | negative | error
+    rule_hit      TEXT,
+    tokens_in     INTEGER DEFAULT 0,
+    tokens_out    INTEGER DEFAULT 0,
+    event_ids     TEXT           -- 判正时生成的事件 id,逗号分隔
+);
+CREATE INDEX IF NOT EXISTS idx_log_user_time ON extraction_log(user_id, run_at);
 """
 
 def get_conn():
