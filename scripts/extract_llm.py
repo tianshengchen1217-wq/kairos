@@ -63,7 +63,10 @@ A. 收据 / 付款凭证（"Apple 提供的收据""Your receipt from X""Receipt 
 B. 纯促销 / 营销：打折、大促、deals、sale、% off、Black Friday、clearance、bonus points、miles 等。
    即使带"ends today / expires tomorrow / last chance"也判负——那是促销截止，不是用户的权益或行动承诺。
    营销邮件里顺带提及的会员到期日也判负；只有专门的到期提醒才算 deadline。
-C. 已取消 / 已完成 / 已送达 / 请求被拒（cancelled / declined / delivered / completed / 已取消 / 已送达）。
+C. 已完成 / 已送达 / 请求被拒（declined / delivered / completed / 已送达）。
+C2. 已取消（cancelled / 已取消）：若被取消的事件时间在发送日期之后（未来），
+    has_commitment=true，输出该事件并加字段 "cancelled": true，
+    datetime 填被取消的原时间；若该时间已过去，无承诺。
 
 【第二步：排除门没命中，再判是否为时间承诺 has_commitment=true。必须同时满足：】
 1. 未来：时间点晚于发送日期（含当天）。发送日之前的日期一律不算。
@@ -95,6 +98,8 @@ C. 已取消 / 已完成 / 已送达 / 请求被拒（cancelled / declined / del
 
 【输出】严格只输出 JSON，无任何多余文字、无 markdown 代码块：
 {"has_commitment": true, "events": [{"type": "...", "datetime": "YYYY-MM-DD 或 YYYY-MM-DD HH:MM", "title": "简短中文描述"}]}
+取消类事件（仅 C2 情形）多带一个字段：{"type": "...", "datetime": "...", "title": "...", "cancelled": true}；
+非取消事件不要输出 cancelled 字段。
 
 【title 写法】必须让用户在日历里一眼认出是什么，不能只写通用词。
 - billing：写「商品/服务名 + 计费周期 + 金额」，如「芒果TV 连续包月 ¥18」「Verizon 账单 $60.50」
@@ -102,6 +107,7 @@ C. 已取消 / 已完成 / 已送达 / 请求被拒（cancelled / declined / del
 - delivery：写「商家 + 商品」，如「Apple USB-C 充电线送达」「Walmart 矿泉水送达」
 - appointment：写「地点/机构 + 事项」，如「Rata 餐厅订位 2人」「UC Berkeley 校园参观」
 - deadline：写「要做的事 + 主体」，如「提交 Duolingo 成绩（UCSB 申请）」
+- cancelled 事件：title 写被取消的原事件名（用于匹配日历中已有事件），不要写「取消 XX」。
 一封邮件含多个事件时，各条 title 必须能相互区分。
 
 多个事件按 datetime 从早到晚排列。无事件时 has_commitment=false 且 events=[]。"""
