@@ -24,6 +24,19 @@ def _merge_into_db(conn, user_id: int, email: dict, ev: dict, key: str):
     dom = D.sender_domain(email.get("sender", ""))
     today = date.today().isoformat()
 
+    # 前置:来源同一性。同一封邮件对同(user, type, 日期)的裁决只占一个槽位,
+    # 防止重跑时 LLM title 漂移绕过二级 key(生产第一天实测击穿:email 1a005372ff1043f3)
+    dup = conn.execute(
+        "SELECT id FROM events WHERE user_id=? AND email_id=? AND type=? "
+        "AND substr(datetime,1,10)=? AND status='active'",
+        (user_id, email["id"], typ, nd)).fetchone()
+    if dup:
+        conn.execute(
+            "UPDATE events SET datetime=?, title=?, dedup_key=?, "
+            "updated_at=datetime('now') WHERE id=?",
+            (ev["datetime"], ev.get("title", ""), key, dup["id"]))
+        return "silent_overwrite", dup["id"]
+
     rows = conn.execute(
         "SELECT id, datetime, type FROM events "
         "WHERE user_id=? AND dedup_key=? AND status='active' ORDER BY datetime",

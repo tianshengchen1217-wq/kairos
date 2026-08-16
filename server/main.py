@@ -31,6 +31,10 @@ def create_event(ev: dict = Body(...)):
     # 返回带 id 的完整记录 —— store.js 的 POST 约定
     return db.add_event(ev, user_id=1)
 
+@app.post("/api/sync")
+def sync_now():
+    import ingest
+    return ingest.process_new(user_id=1, commit_cursor=True)
 
 # 托管前端。必须放在所有 /api 路由之后,否则会拦截 API 请求
 app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
