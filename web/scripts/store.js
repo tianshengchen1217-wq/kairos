@@ -93,7 +93,10 @@ const Store = (() => {
     /* 事件列表。后端版本应支持按月拉取以免一次拖太多。 */
     async list(){
       if(MODE==="demo") return cache;
-      if(!cache) cache = await json("/events");
+      if(!cache){
+        cache = await json("/events");
+        try{ conn = await json("/connection"); }catch(e){}
+      }
       return cache;
     },
     /* 手动添加一项。后端版本 POST 后用返回值替换本地。 */

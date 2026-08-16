@@ -52,5 +52,15 @@ def sync_now():
     import ingest
     return ingest.process_new(user_id=1, commit_cursor=True)
 
+@app.get("/api/connection")
+def connection_status():
+    with db.get_conn() as conn:
+        row = conn.execute(
+            "SELECT email, refresh_token IS NOT NULL AS has_rt "
+            "FROM users WHERE id = 1").fetchone()
+    if row and row["has_rt"]:
+        return {"state": "connected", "email": row["email"]}
+    return {"state": "none", "email": None}
+
 # 托管前端。必须放在所有 /api 路由之后,否则会拦截 API 请求
 app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
