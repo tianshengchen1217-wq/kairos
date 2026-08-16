@@ -33,7 +33,8 @@ def scheduled_sync():
     import ingest
     with db.get_conn() as conn:
         user_ids = [r["id"] for r in conn.execute(
-            "SELECT id FROM users WHERE refresh_token IS NOT NULL")]
+            "SELECT id FROM users WHERE refresh_token IS NOT NULL "
+            "AND (token_status IS NULL OR token_status != 'expired')")]
     for uid in user_ids:
         try:
             s = ingest.process_new(user_id=uid, commit_cursor=True)
@@ -70,11 +71,13 @@ def create_event(ev: dict = Body(...), user_id: int = Depends(current_user)):
 def connection_status(user_id: int = Depends(current_user)):
     with db.get_conn() as conn:
         row = conn.execute(
-            "SELECT email, refresh_token IS NOT NULL AS has_rt "
+            "SELECT email, refresh_token IS NOT NULL AS has_rt, token_status "
             "FROM users WHERE id = ?", (user_id,)).fetchone()
-    if row and row["has_rt"]:
-        return {"state": "connected", "email": row["email"]}
-    return {"state": "none", "email": None}
+    if not row or not row["has_rt"]:
+        return {"state": "none", "email": None}
+    if row["token_status"] == "expired":
+        return {"state": "expired", "email": row["email"]}
+    return {"state": "connected", "email": row["email"]}
 
 
 @app.post("/api/sync")

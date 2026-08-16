@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     email         TEXT UNIQUE NOT NULL,
     google_sub    TEXT UNIQUE,
     refresh_token TEXT,
+    token_status  TEXT DEFAULT 'ok',
     token_expiry  TEXT,
     created_at    TEXT DEFAULT (datetime('now'))
 );
@@ -70,11 +71,16 @@ def get_conn():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row      # 行为可按列名取值的对象
     conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA journal_mode = WAL")
     return conn
 
 def init_db():
     with get_conn() as conn:
         conn.executescript(SCHEMA)
+        # 迁移:老库补 token_status 列(幂等)
+        cols = [r["name"] for r in conn.execute("PRAGMA table_info(users)")]
+        if "token_status" not in cols:
+            conn.execute("ALTER TABLE users ADD COLUMN token_status TEXT DEFAULT 'ok'")
 
 def list_events(user_id: int = 1):
     with get_conn() as conn:
@@ -106,7 +112,8 @@ def upsert_user(email: str, google_sub: str, refresh_token: str | None):
         if row:
             if refresh_token:
                 conn.execute(
-                    "UPDATE users SET email = ?, refresh_token = ? WHERE google_sub = ?",
+                    "UPDATE users SET email = ?, refresh_token = ?, "
+                    "token_status = 'ok' WHERE google_sub = ?",
                     (email, refresh_token, google_sub))
             return row["id"]
         cur = conn.execute(
@@ -140,3 +147,16 @@ def get_session_user(token: str | None) -> int | None:
 def delete_session(token: str):
     with get_conn() as conn:
         conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+
+def mark_token_expired(user_id: int):
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE users SET token_status = 'expired' WHERE id = ?",
+            (user_id,))
+
+
+def get_token_status(user_id: int) -> str | None:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT token_status FROM users WHERE id = ?", (user_id,)).fetchone()
+    return row["token_status"] if row else None

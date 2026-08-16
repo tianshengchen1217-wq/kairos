@@ -34,7 +34,13 @@ def get_service(user_id: int = 1):
         client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
         scopes=SCOPES,
     )
-    creds.refresh(Request())                          # refresh_token → 新鲜的 access token
+    try:
+        creds.refresh(Request())
+    except Exception as e:
+        msg = str(e).lower()
+        if "invalid_grant" in msg or "invalid_scope" in msg:
+            db.mark_token_expired(user_id)            # 钥匙作废:标记,停止空转
+        raise                                          # 照常抛出,调用方(scheduler)记日志
     return build("gmail", "v1", credentials=creds, cache_discovery=False)
 
 def fetch_new_messages(user_id: int = 1, bootstrap_days: int = 7,
