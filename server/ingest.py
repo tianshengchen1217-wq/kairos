@@ -99,13 +99,19 @@ def process_new(user_id: int = 1, bootstrap_days: int = 7,
                 # dedup_test 的 build_key 期望 em["from"],做字段适配
                 em_view = {"body": m["body"], "subject": m["subject"],
                            "from": m["sender"], "id": m["id"]}
+                CANCEL_WORDS = ("cancelled", "canceled", "已取消", "取消")
+                is_cancel_mail = any(w in m["subject"].lower() for w in CANCEL_WORDS)
                 for ev in v["events"]:
                     if not ev.get("datetime"):
                         continue
                     key, _ = D.build_key(em_view, ev)
-                    action, eid = _merge_into_db(conn, user_id, m, ev, key)
-                    event_ids.append(str(eid))
-                    summary["events"] += 1
+                    if ev.get("cancelled") or is_cancel_mail:
+                        action, eid = _cancel_in_db(conn, user_id, m, ev, key)
+                    else:
+                        action, eid = _merge_into_db(conn, user_id, m, ev, key)
+                    if eid:
+                        event_ids.append(str(eid))
+                        summary["events"] += 1
                     summary["actions"].append(
                         (action, ev.get("datetime"), ev.get("title", "")[:40]))
             else:
