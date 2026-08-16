@@ -75,6 +75,29 @@ def _merge_into_db(conn, user_id: int, email: dict, ev: dict, key: str):
          ev["datetime"], dom))
     return "new_cycle", cur.lastrowid
 
+def _cancel_in_db(conn, user_id: int, email: dict, ev: dict, key: str):
+    """取消场景:定位库里对应的 active 事件,软删。找不到目标则记 cancel_miss。"""
+    nd = (ev.get("datetime") or "")[:10]
+    typ = ev.get("type", "other")
+    # 一级定位:同 dedup_key 同日期
+    row = conn.execute(
+        "SELECT id FROM events WHERE user_id=? AND dedup_key=? "
+        "AND status='active' AND substr(datetime,1,10)=?",
+        (user_id, key, nd)).fetchone()
+    # 二级退化:同类型同日期(key 因发件域/title 漂移没对上时兜底)
+    if not row:
+        row = conn.execute(
+            "SELECT id FROM events WHERE user_id=? AND type=? "
+            "AND status='active' AND substr(datetime,1,10)=?",
+            (user_id, typ, nd)).fetchone()
+    if row:
+        conn.execute(
+            "UPDATE events SET status='cancelled', email_id=?, "
+            "updated_at=datetime('now') WHERE id=?",
+            (email["id"], row["id"]))
+        return "cancelled", row["id"]
+    return "cancel_miss", None
+
 
 def process_new(user_id: int = 1, bootstrap_days: int = 7,
                 commit_cursor: bool = True):
