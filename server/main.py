@@ -9,6 +9,22 @@ app = FastAPI(title="Kairos API", version="0.2.0")
 # 启动时建表(幂等:表已存在则跳过)
 db.init_db()
 
+from apscheduler.schedulers.background import BackgroundScheduler
+
+def scheduled_sync():
+    import ingest
+    try:
+        s = ingest.process_new(user_id=1, commit_cursor=True)
+        print(f"[scheduler] fetched={s['fetched']} positive={s['positive']} "
+              f"events={s['events']} errors={s['errors']}")
+    except Exception as e:
+        print(f"[scheduler] sync failed: {e}")   # 失败不炸服务器,游标未动下轮重试
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(scheduled_sync, "interval", hours=4,
+                  next_run_time=None)            # 启动时不立即跑,到点才跑
+scheduler.start()
+
 import auth
 app.include_router(auth.router)
 
