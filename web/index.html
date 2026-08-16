@@ -14,9 +14,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Cinzel:wght@400;500&family=Cormorant+Garamond:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/base.css">
-<link rel="stylesheet" href="styles/calendar.css">
-<link rel="stylesheet" href="styles/onboarding.css">
+<link rel="stylesheet" href="styles/base.css?v=1">
+<link rel="stylesheet" href="styles/calendar.css?v=1">
+<link rel="stylesheet" href="styles/onboarding.css?v=1">
 </head>
 <body class="all">
 
@@ -181,10 +181,10 @@
 </div>
 
 <!-- 顺序即依赖：后面的可以用前面的，反之不行 -->
-<script src="scripts/i18n.js"></script>       <!-- LANG / L() / MO_EN -->
-<script src="scripts/store.js"></script>      <!-- Store：数据层唯一出入口 -->
-<script src="scripts/app.js"></script>        <!-- QUOTES / App（内部引用延迟求值） -->
-<script src="scripts/calendar.js"></script>   <!-- Cal：需要 L() 与 QUOTES -->
-<script src="scripts/onboarding.js"></script> <!-- Onboard：需要 Cal 与 App -->
+<script src="scripts/i18n.js?v=1"></script>       <!-- LANG / L() / MO_EN -->
+<script src="scripts/store.js?v=1"></script>      <!-- Store：数据层唯一出入口 -->
+<script src="scripts/app.js?v=1"></script>        <!-- QUOTES / App（内部引用延迟求值） -->
+<script src="scripts/calendar.js?v=1"></script>   <!-- Cal：需要 L() 与 QUOTES -->
+<script src="scripts/onboarding.js?v=1"></script> <!-- Onboard：需要 Cal 与 App -->
 </body>
 </html>
