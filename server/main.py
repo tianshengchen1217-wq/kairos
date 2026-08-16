@@ -1,66 +1,97 @@
 from pathlib import Path
-from fastapi import FastAPI, Body
+
+from fastapi import FastAPI, Body, Cookie, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from apscheduler.schedulers.background import BackgroundScheduler
 
 import db
+import db
+import auth
 
-app = FastAPI(title="Kairos API", version="0.2.0")
+app = FastAPI(title="Kairos API", version="0.3.0")
 
 # 启动时建表(幂等:表已存在则跳过)
 db.init_db()
-
-from apscheduler.schedulers.background import BackgroundScheduler
-
-def scheduled_sync():
-    import ingest
-    try:
-        s = ingest.process_new(user_id=1, commit_cursor=True)
-        print(f"[scheduler] fetched={s['fetched']} positive={s['positive']} "
-              f"events={s['events']} errors={s['errors']}")
-    except Exception as e:
-        print(f"[scheduler] sync failed: {e}")   # 失败不炸服务器,游标未动下轮重试
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(scheduled_sync, "interval", hours=1,
-                  next_run_time=None)            # 启动时不立即跑,到点才跑
-scheduler.start()
-
-import auth
+db.init_db()
 app.include_router(auth.router)
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
+# ── 门禁:从 cookie 解出当前用户 ─────────────────────────
+def current_user(kairos_session: str | None = Cookie(default=None)) -> int:
+    """无牌或过期 → 401(store.js 已预留该语义)"""
+    user_id = db.get_session_user(kairos_session)
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="unauthenticated")
+    return user_id
+
+
+# ── 定时任务:遍历所有用户,单个失败不连累别人 ─────────────
+def scheduled_sync():
+    import ingest
+    with db.get_conn() as conn:
+        user_ids = [r["id"] for r in conn.execute(
+            "SELECT id FROM users WHERE refresh_token IS NOT NULL")]
+    for uid in user_ids:
+        try:
+            s = ingest.process_new(user_id=uid, commit_cursor=True)
+            print(f"[scheduler] user={uid} fetched={s['fetched']} "
+                  f"positive={s['positive']} events={s['events']} "
+                  f"errors={s['errors']}")
+        except Exception as e:
+            print(f"[scheduler] user={uid} sync failed: {e}")
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(scheduled_sync, "interval", hours=1,
+                  next_run_time=None)
+scheduler.start()
+
+
+# ── API 路由 ─────────────────────────────────────────────
 @app.get("/api/health")
 def health():
-    return {"ok": True, "service": "kairos", "version": "0.2.0"}
+    return {"ok": True, "service": "kairos", "version": "0.3.0"}
 
 
 @app.get("/api/events")
-def list_events():
-    # 单用户阶段固定 user_id=1;OAuth 接入后改为从会话取
-    return db.list_events(user_id=1)
+def list_events(user_id: int = Depends(current_user)):
+    return db.list_events(user_id=user_id)
 
 
 @app.post("/api/events")
-def create_event(ev: dict = Body(...)):
-    # 返回带 id 的完整记录 —— store.js 的 POST 约定
-    return db.add_event(ev, user_id=1)
+def create_event(ev: dict = Body(...), user_id: int = Depends(current_user)):
+    return db.add_event(ev, user_id=user_id)
 
-@app.post("/api/sync")
-def sync_now():
-    import ingest
-    return ingest.process_new(user_id=1, commit_cursor=True)
 
 @app.get("/api/connection")
-def connection_status():
+def connection_status(user_id: int = Depends(current_user)):
     with db.get_conn() as conn:
         row = conn.execute(
             "SELECT email, refresh_token IS NOT NULL AS has_rt "
-            "FROM users WHERE id = 1").fetchone()
+            "FROM users WHERE id = ?", (user_id,)).fetchone()
     if row and row["has_rt"]:
         return {"state": "connected", "email": row["email"]}
     return {"state": "none", "email": None}
 
-# 托管前端。必须放在所有 /api 路由之后,否则会拦截 API 请求
+
+@app.post("/api/sync")
+def sync_now(user_id: int = Depends(current_user)):
+    """手动触发:只同步当前登录用户自己的邮箱"""
+    import ingest
+    return ingest.process_new(user_id=user_id, commit_cursor=True)
+
+
+@app.post("/api/logout")
+def logout(kairos_session: str | None = Cookie(default=None)):
+    if kairos_session:
+        db.delete_session(kairos_session)
+    resp = JSONResponse({"ok": True})
+    resp.delete_cookie("kairos_session")
+    return resp
+
+
+# 托管前端:必须放在所有 /api 路由之后,否则会拦截 API 请求
 app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")

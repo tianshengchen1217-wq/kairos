@@ -1,9 +1,13 @@
+import os
+import secrets
 import sqlite3
 from pathlib import Path
+from fastapi import FastAPI, Body, Cookie, HTTPException, Depends
 
-import os
 DB_PATH = Path(os.environ.get("KAIROS_DB_PATH",
                               Path(__file__).resolve().parent / "kairos.db"))
+
+SESSION_DAYS = 30
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -51,6 +55,15 @@ CREATE TABLE IF NOT EXISTS extraction_log (
     event_ids     TEXT           -- 判正时生成的事件 id,逗号分隔
 );
 CREATE INDEX IF NOT EXISTS idx_log_user_time ON extraction_log(user_id, run_at);
+
+CREATE TABLE IF NOT EXISTS sessions (
+    token       TEXT PRIMARY KEY,          -- 随机串,牌子本体
+    user_id     INTEGER NOT NULL,
+    created_at  TEXT DEFAULT (datetime('now')),
+    expires_at  TEXT NOT NULL,
+    last_seen   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
 """
 
 def get_conn():
@@ -100,3 +113,30 @@ def upsert_user(email: str, google_sub: str, refresh_token: str | None):
             "INSERT INTO users (email, google_sub, refresh_token) VALUES (?,?,?)",
             (email, google_sub, refresh_token))
         return cur.lastrowid
+
+def create_session(user_id: int) -> str:
+    token = secrets.token_urlsafe(32)      # 256 位随机,不可猜
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT INTO sessions (token, user_id, expires_at) "
+            "VALUES (?, ?, datetime('now', ?))",
+            (token, user_id, f"+{SESSION_DAYS} days"))
+    return token
+
+def get_session_user(token: str | None) -> int | None:
+    if not token:
+        return None
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT user_id FROM sessions "
+            "WHERE token = ? AND expires_at > datetime('now')",
+            (token,)).fetchone()
+        if row:
+            conn.execute("UPDATE sessions SET last_seen = datetime('now') "
+                         "WHERE token = ?", (token,))
+            return row["user_id"]
+    return None
+
+def delete_session(token: str):
+    with get_conn() as conn:
+        conn.execute("DELETE FROM sessions WHERE token = ?", (token,))

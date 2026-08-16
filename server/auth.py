@@ -81,9 +81,18 @@ async def callback(code: str | None = None, state: str | None = None,
             headers={"Authorization": f"Bearer {tokens['access_token']}"})
     info = ui.json()                            # {"sub": ..., "email": ...}
 
-    db.upsert_user(
+    user_id = db.upsert_user(
         email=info["email"],
         google_sub=info["sub"],
         refresh_token=tokens.get("refresh_token"),
     )
-    return RedirectResponse("/?auth=ok")        # 回日历,带上成功标记
+    token = db.create_session(user_id)
+    resp = RedirectResponse("/?auth=ok")
+    resp.set_cookie(
+        "kairos_session", token,
+        max_age=30 * 86400,        # 与 SESSION_DAYS 对齐
+        httponly=True,             # JS 读不到 → 防 XSS 偷牌
+        secure=True,               # 只走 HTTPS(127.0.0.1 有浏览器豁免)
+        samesite="lax",            # 跨站请求不带牌 → 防 CSRF
+    )
+    return resp
