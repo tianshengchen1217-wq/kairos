@@ -21,7 +21,7 @@ def scheduled_sync():
         print(f"[scheduler] sync failed: {e}")   # 失败不炸服务器,游标未动下轮重试
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(scheduled_sync, "interval", hours=4,
+scheduler.add_job(scheduled_sync, "interval", hours=1,
                   next_run_time=None)            # 启动时不立即跑,到点才跑
 scheduler.start()
 
