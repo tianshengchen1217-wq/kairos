@@ -77,6 +77,7 @@ const App = (() => {
   async function reload(){
     Cal.setEvents(await Store.list());
     Cal.render();
+    drawConn();          // 数据(连带 conn)取回后重画提示条
   }
 
   return {
@@ -136,10 +137,8 @@ const App = (() => {
         $("#sUrl").value=""; $("#sName").value="";
       };
       /* 连接状态条上的按钮 */
-      $("#connbar button").onclick=()=>{
-        // TODO(后端)：location.href = "/auth/google"
-        Cal.toast(L().demoTip);
-      };
+      $("#connbar button").onclick=()=>{ location.href="/api/auth/google"; };
+
       /* 调试：载入真实抽取结果 */
       const f=$("#fileIn");
       if(f) f.onchange=ev=>{
@@ -156,9 +155,19 @@ const App = (() => {
         r.readAsText(file);
       };
 
-      await reload();
-      applyLang();
+      /* auth=ok:授权跳回,清掉 URL 参数并强制取新状态 */
+      const authBack = new URLSearchParams(location.search).get("auth");
+      if (authBack) history.replaceState(null, "", location.pathname);
+
+      applyLang();          // UI 先立起来——数据失败也要有完整界面
       Onboard.init();
+      try {
+        await reload();     // 数据最后取:失败只影响内容,不影响交互
+      } catch (e) {
+        Cal.setEvents([]);  // 空日历
+        Cal.render();
+        drawConn();         // 此刻 conn 已被 store.js 置为 none/expired,提示条亮起
+      }
     }
   };
 })();
