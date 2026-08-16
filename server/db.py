@@ -1,7 +1,9 @@
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent / "kairos.db"
+import os
+DB_PATH = Path(os.environ.get("KAIROS_DB_PATH",
+                              Path(__file__).resolve().parent / "kairos.db"))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (

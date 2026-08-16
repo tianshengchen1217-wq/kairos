@@ -20,7 +20,8 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 CLIENT_ID     = os.environ["GOOGLE_CLIENT_ID"]
 CLIENT_SECRET = os.environ["GOOGLE_CLIENT_SECRET"]
-REDIRECT_URI  = "http://127.0.0.1:8000/api/auth/callback"
+BASE_URL = os.environ.get("KAIROS_BASE_URL", "http://127.0.0.1:8000")
+REDIRECT_URI = f"{BASE_URL}/api/auth/callback"
 
 AUTH_URL  = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
