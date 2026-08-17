@@ -69,10 +69,16 @@ def fetch_new_messages(user_id: int = 1, bootstrap_days: int = 7,
     else:
         after_sec = int(time.time()) - bootstrap_days * 86400
 
-    resp = svc.users().messages().list(
-        userId="me", q=f"after:{after_sec}", maxResults=max_results,
-    ).execute()
-    ids = [m["id"] for m in resp.get("messages", [])]
+    ids, page_token = [], None
+    while True:
+        resp = svc.users().messages().list(
+            userId="me", q=f"after:{after_sec}",
+            maxResults=max_results, pageToken=page_token,
+        ).execute()
+        ids.extend(m["id"] for m in resp.get("messages", []))
+        page_token = resp.get("nextPageToken")
+        if not page_token or len(ids) >= 500:   # 翻页拉全;护栏防首拉失控
+            break
 
     messages, max_ts = [], cursor_ms or 0
     for mid in ids:
