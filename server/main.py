@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import FastAPI, Body, Cookie, Depends, HTTPException
@@ -60,7 +61,7 @@ def scheduled_backup():
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(scheduled_sync, "interval", hours=1,
-                  next_run_time=None)
+                  next_run_time=datetime.now() + timedelta(seconds=90))
 scheduler.add_job(scheduled_backup, "cron", hour=17, minute=0)
 scheduler.start()
 
