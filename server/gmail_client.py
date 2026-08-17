@@ -105,22 +105,35 @@ def fetch_new_messages(user_id: int = 1, bootstrap_days: int = 7,
 
 
 def _extract_body(payload) -> str:
-    """从 MIME 结构里挖正文,text/plain 优先,递归 multipart。"""
+    """正文提取:HTML 优先(经 html2text 转纯文本),plain 备胎。
+    原因:发件方的 text/plain 常为劣质降级(实测 Origin 账单 plain 版
+    丢失金额小数点 $103.24→$10324;HTML 版正确)。"""
     import base64
 
     def decode(data):
         return base64.urlsafe_b64decode(data).decode("utf-8", errors="replace")
 
-    if payload.get("mimeType") == "text/plain" and payload["body"].get("data"):
-        return decode(payload["body"]["data"])
-    for part in payload.get("parts", []) or []:
-        text = _extract_body(part)
-        if text:
-            return text
-    if payload.get("mimeType") == "text/html" and payload["body"].get("data"):
-        return decode(payload["body"]["data"])   # 没有纯文本时退而求 HTML
-    return ""
+    def find(p, mime):
+        if p.get("mimeType") == mime and p.get("body", {}).get("data"):
+            return decode(p["body"]["data"])
+        for part in p.get("parts", []) or []:
+            r = find(part, mime)
+            if r:
+                return r
+        return ""
 
+    html = find(payload, "text/html")
+    if html:
+        try:
+            import html2text
+            h = html2text.HTML2Text()
+            h.ignore_links = True
+            h.ignore_images = True
+            h.body_width = 0
+            return h.handle(html)
+        except ImportError:
+            pass
+    return find(payload, "text/plain")
 
 def commit_cursor(user_id: int, max_internal_date: int):
     """仅在整批处理成功后调用 —— 游标推进与处理成功绑定,失败轮次自动重试。"""
