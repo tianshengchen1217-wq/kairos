@@ -270,3 +270,4 @@ Private data (email corpus, annotations, credentials) is excluded by design.
 ## 目录结构与路线图
 
 (同英文版。)私有数据(邮件语料、标注、凭证)按设计排除在仓库之外。下一步:FastAPI 后端(OAuth、SQLite、APScheduler 增量抽取)、日历层准入策略(独立模块、独立 gold)、`.ics` / `webcal://` 订阅源。
+
